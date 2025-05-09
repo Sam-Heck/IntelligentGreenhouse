@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+    landing:
+        build: ./apps/landing
+        container_name: landing
+        ports:
+            - "${LANDING_PORT}:3000"
+        environment:
+            - NODE_ENV=${NODE_ENV}
+        restart: unless-stopped
+
+    frontend:
+        build: ./apps/frontend
+        container_name: frontend
+        ports:
+            - "${FRONTEND_PORT}:3000"
+        environment:
+            - NODE_ENV=${NODE_ENV}
+        restart: unless-stopped
+
+    data-collector:
+        build: ./apps/data-collector
+        container_name: data-collector
+        depends_on:
+            - mysql
+        environment:
+            - NODE_ENV=${NODE_ENV}
+            - DATABASE_URL=${DATABASE_URL}
+        restart: unless-stopped
+
+    mysql:
+        image: mysql:8.0
+        container_name: mysql
+        environment:
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+            MYSQL_DATABASE: ${MYSQL_DATABASE}
+            MYSQL_USER: ${MYSQL_USER}
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+        volumes:
+            - mysql_data:/var/lib/mysql
+        restart: unless-stopped
+
+volumes:
+    mysql_data:
