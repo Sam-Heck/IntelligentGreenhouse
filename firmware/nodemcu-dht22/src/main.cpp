@@ -73,9 +73,9 @@ void loop() {
     float t2 = dht2.readTemperature() * 1.8 + 32;
 
     if (!isnan(h1) && !isnan(t1) && !isnan(h2) && !isnan(t2)) {
-        String payload = "{\"sensor1\": {\"temp\": " + String(t1) +
+        String payload = "{\"1\": {\"temp\": " + String(t1) +
                          ", \"humidity\": " + String(h1) + "}, " +
-                         "\"sensor2\": {\"temp\": " + String(t2) +
+                         "\"2\": {\"temp\": " + String(t2) +
                          ", \"humidity\": " + String(h2) + "}}";
 
         client.publish(topic.c_str(), payload.c_str());
