@@ -62,6 +62,42 @@ void connectToMQTT() {
     }
 }
 
+void drawSensorCard(
+    TFT_eSprite& sprite,
+    const char* label,
+    float temp,
+    float humidity,
+    int x,
+    int y
+) {
+    // Draw rounded background inside sprite
+    sprite.fillSprite(TFT_BLACK);  // base fill to erase
+    sprite.fillRoundRect(0, 0, CARD_WIDTH, CARD_HEIGHT, 8, TFT_DARKGREY);
+
+
+    sprite.drawRoundRect(0, 0, CARD_WIDTH, CARD_HEIGHT, 8, TFT_LIGHTGREY);
+
+    // Title
+    sprite.setTextSize(2);
+    sprite.setTextColor(TFT_CYAN, TFT_DARKGREY);
+    sprite.setCursor(CARD_PADDING, CARD_PADDING);
+    sprite.println(label);
+
+    // Sensor values
+    sprite.setTextColor(TFT_WHITE, TFT_DARKGREY);
+    sprite.setCursor(CARD_PADDING + TEXT_INDENT, CARD_PADDING + 24);
+    if (!isnan(temp) && !isnan(humidity)) {
+        sprite.printf("Temp: %.1f F\n", temp);
+        sprite.setCursor(CARD_PADDING + TEXT_INDENT, CARD_PADDING + 44);
+        sprite.printf("Humidity: %.1f%%", humidity);
+    } else {
+        sprite.println("Sensor error");
+    }
+
+    sprite.pushSprite(x, y);
+}
+
+
 void setup() {
     Serial.begin(115200);
     dht1.begin();
@@ -71,21 +107,11 @@ void setup() {
     tft.setRotation(1);
     tft.fillScreen(TFT_BLACK);
     
-    // Create each card sprite
-    card1.createSprite(CARD_WIDTH - CARD_PADDING * 2, 60);
-    card2.createSprite(CARD_WIDTH - CARD_PADDING * 2, 60);
-    
+    card1.createSprite(CARD_WIDTH, CARD_HEIGHT);
+    card2.createSprite(CARD_WIDTH, CARD_HEIGHT);
     card1.setTextSize(2);
-    card1.setTextColor(TFT_WHITE, TFT_DARKGREY);
     card2.setTextSize(2);
-    card2.setTextColor(TFT_WHITE, TFT_DARKGREY);
-    
-    tft.fillScreen(TFT_BLACK);
 
-    // Draw static card backgrounds directly on the screen
-    tft.fillRoundRect(CARD_MARGIN, CARD_MARGIN, CARD_WIDTH, CARD_HEIGHT, 8, TFT_DARKGREY);
-    tft.fillRoundRect(CARD_MARGIN, CARD_MARGIN * 2 + CARD_HEIGHT, CARD_WIDTH, CARD_HEIGHT, 8, TFT_DARKGREY);
-    
     connectToWiFi();
 
     // MQTT topic
@@ -124,45 +150,17 @@ void loop() {
     if (displayDue) {
         lastDisplayUpdate = now;
     
-        // --- Sensor 1 Card Text Sprite ---
-        card1.fillSprite(TFT_DARKGREY);
-        card1.setCursor(0, 0);
-        card1.setTextColor(TFT_CYAN, TFT_DARKGREY);
-        card1.println("Sensor 1");
+        drawSensorCard(
+            card1, "Sensor 1", t1, h1,
+            CARD_MARGIN, CARD_MARGIN
+        );
     
-        card1.setTextColor(TFT_WHITE, TFT_DARKGREY);
-        card1.setCursor(TEXT_INDENT, 20);
-        if (!isnan(t1) && !isnan(h1)) {
-            card1.printf("Temp: %.1f F\n", t1);
-            card1.setCursor(TEXT_INDENT, 40);
-            card1.printf("Humidity: %.1f%%", h1);
-        } else {
-            card1.println("Error reading data");
-        }
+        drawSensorCard(
+            card2, "Sensor 2", t2, h2,
+            CARD_MARGIN, CARD_MARGIN * 2 + CARD_HEIGHT
+        );
+    }    
     
-        // Push only the text sprite (not full card)
-        card1.pushSprite(CARD_MARGIN + CARD_PADDING, CARD_MARGIN + CARD_PADDING + 20);
-    
-        // --- Sensor 2 Card Text Sprite ---
-        card2.fillSprite(TFT_DARKGREY);
-        card2.setCursor(0, 0);
-        card2.setTextColor(TFT_CYAN, TFT_DARKGREY);
-        card2.println("Sensor 2");
-    
-        card2.setTextColor(TFT_WHITE, TFT_DARKGREY);
-        card2.setCursor(TEXT_INDENT, 20);
-        if (!isnan(t2) && !isnan(h2)) {
-            card2.printf("Temp: %.1f F\n", t2);
-            card2.setCursor(TEXT_INDENT, 40);
-            card2.printf("Humidity: %.1f%%", h2);
-        } else {
-            card2.println("Error reading data");
-        }
-    
-        card2.pushSprite(CARD_MARGIN + CARD_PADDING, CARD_MARGIN * 2 + CARD_HEIGHT + CARD_PADDING + 20);
-    }
-    
-
     if (publishDue) {
         lastPublish = now;
     
