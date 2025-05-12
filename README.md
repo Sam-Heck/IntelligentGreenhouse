@@ -1,169 +1,158 @@
 # IntelligentGreenhouse
 
-### **Overview**
+## Overview
 
-IntelligentGreenhouse is a remote monitoring and control application designed for greenhouse systems. This app allows users to:
+**IntelligentGreenhouse** is a full-stack, containerized greenhouse monitoring and control system built for remote access, automation, and extensibility. It features a real-time dashboard powered by MQTT-connected ESP32 devices, allowing users to view temperature and humidity data and, when authenticated, control relays and servos in the greenhouse environment.
 
-- Monitor temperature and humidity in real-time.
-- Control devices such as heaters, fans, and lights remotely.
-- Receive periodic updates on environmental conditions.
-
-This project demonstrates my skills in embedded systems, full-stack development, and IoT technologies.
+This is a personal passion project demonstrating skills in embedded systems, backend architecture, CI/CD, and modern web development.  
+**Live Demo (Coming Soon):** [https://intelligentgreenhouse.com](https://intelligentgreenhouse.com) (Read-only access)
 
 ---
 
-### **Features**
+## Features
 
-- **Real-Time Monitoring:** View live temperature and humidity readings via a web-based dashboard.
-- **Device Control:** Turn devices on/off remotely with the click of a button.
-- **Data Logging:** Maintain a historical log of environmental data for analysis.
-- **Responsive UI:** The front-end interface is optimized for desktop and mobile devices.
-- **Wi-Fi Enabled:** Uses an ESP8266 microcontroller for data transmission over Wi-Fi.
-- **Expandable Design:** Easily integrate additional sensors or devices.
-
----
-
-### **Tech Stack**
-
-- **Embedded Systems:** NodeMCU ESP8266
-- **Sensors:** DHT22 for temperature and humidity
-- **Back-End:**
-  - Node.js with Express (API server)
-  - MQTT for real-time communication
-- **Front-End:**
-  - React
-- **Database:** 
-  - MySQL
-- **Deployment:**
-  - Local: Raspberry Pi (Optional to host Express.js server)
+-   Real-time temperature and humidity monitoring
+-   Device control (relay/servo) for authenticated users
+-   Data persistence with MySQL
+-   Public read-only dashboard access
+-   Responsive Next.js frontend
+-   Secure public access via Cloudflare Tunnel
+-   Modular and extensible architecture
 
 ---
 
-### **Getting Started**
+## Tech Stack
 
-#### Prerequisites
+| Layer           | Technology                             |
+| --------------- | -------------------------------------- |
+| Microcontroller | ESP32 with DHT22 sensors               |
+| Messaging       | MQTT (Mosquitto broker in Docker)      |
+| Backend         | Node.js data collector, Prisma ORM     |
+| Frontend        | Next.js web dashboard                  |
+| Database        | MySQL (Docker)                         |
+| CI/CD           | GitHub Actions with self-hosted runner |
+| Deployment      | Docker Compose on home server          |
+| Public Access   | Cloudflare Tunnel with custom domain   |
 
-- Node.js and npm are installed on your machine.
-- MySQL or another database server running locally or in the cloud.
-- A NodeMCU ESP8266 microcontroller with a DHT22 sensor.
+---
 
-#### Installation
+## Project Structure
+
+    apps/
+      frontend/         → Next.js web dashboard
+      data-collector/   → Node.js backend storing MQTT data
+
+    firmware/
+      sensor-node/      → ESP32 sketch for sensor publishing
+      control-node/     → ESP32 sketch for control commands
+
+    docker/
+      docker-compose.yml → All containers (broker, db, frontend, backend)
+
+    .github/
+      workflows/        → CI/CD pipelines
+
+---
+
+## Getting Started
+
+### Requirements
+
+-   Docker and Docker Compose
+-   ESP32 board (e.g., DevKit V1)
+-   DHT22 sensor
+-   PlatformIO
+
+### Quick Setup
 
 1. **Clone the repository:**
 
-   ```bash
-   git clone https://github.com/Sam-Heck/IntelligentGreenhouse
-   cd IntelligentGreenhouse
-   ```
+    ```bash
+    git clone https://github.com/samheck/intelligent-greenhouse.git
+    cd intelligent-greenhouse
+    ```
 
-2. **Set up the back end:**
+2. **Set up environment variables:**
 
-   - Navigate to the `server` folder:
-     ```bash
-     cd server
-     ```
-   - Install dependencies:
-     ```bash
-     npm install
-     ```
-   - Configure `.env` file with:
-     ```
-     DB_URI=<your-database-connection-string>
-     PORT=3000
-     ```
+    Create a `.env` file in the root directory:
 
-3. **Set up the front end:**
+    ```env
+    DATABASE_URL=mysql://user:password@mysql/intelligent_greenhouse
+    NODE_ENV=production
+    LANDING_PORT=3000
+    FRONTEND_PORT=3001
+    ```
 
-   - Navigate to the `client` folder:
-     ```bash
-     cd ../client
-     ```
-   - Install dependencies:
-     ```bash
-     npm install
-     ```
-   - Start the development server:
-     ```bash
-     npm start
-     ```
+3. **Build and run containers:**
 
-4. **Program the ESP8266:**
+    ```bash
+    docker-compose up --build
+    ```
 
-   - Use the Arduino IDE to upload the `firmware.ino` script from the `firmware` directory to your NodeMCU.
-   - Update Wi-Fi credentials in the script:
-     ```cpp
-     const char* ssid = "your-SSID";
-     const char* password = "your-PASSWORD";
-     ```
+4. **Upload firmware to ESP32:**
+
+    - Update Wi-Fi and MQTT broker credentials in PlatformIO project folder env file (manually create)
+    - Upload to the ESP32 board with PlatformIO
+    - Must open the project in VS Code with PlatformIO project folder as the root for proper board recognition by PlatformIO.
 
 ---
 
-### **Usage**
+## Usage
 
-1. **Start the back end:**
-
-   ```bash
-   cd backend
-   npm start
-   ```
-
-2. **Access the front end:**
-
-   - Open your browser and go to `http://localhost:3000`.
-
-3. **Monitor and Control:**
-
-   - View real-time temperature and humidity readings.
-   - Use the controls to turn devices on or off.
+-   Open the browser and visit: [https://intelligentgreenhouse.com](https://intelligentgreenhouse.com)
+-   Public users can view live sensor data
+-   Authenticated users can send control commands to connected devices
 
 ---
 
-### **Screenshots**
+## Security and Access
 
-#### Dashboard
+### Public Users
 
+-   Can view live data on the dashboard
+-   Cannot interact with control components
 
+### Authenticated Users
 
-#### Historical Data
-
-
-
----
-
-### **Roadmap**
-
-Future enhancements for IntelligentGreenhouse include:
-
-- Adding support for additional sensors (e.g., soil moisture, CO2 levels).
-- Incorporating machine learning to predict optimal greenhouse conditions.
-- Enabling notification alerts for threshold breaches (e.g., temperature too high).
+-   Can toggle relays or adjust servos via MQTT
+-   May have the ability to register their own hardware in future updates
 
 ---
 
-### **License**
+## Roadmap
+
+-   Add historical data graphing (charts)
+-   Add threshold-based alerting via (email, SMS)
+-   Add basic automation from thresholds adjustable via client(e.g., close vents if temp > X)
+-   Support multiple user accounts and device registration
+
+---
+
+## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ---
 
-### **Acknowledgments**
+## Acknowledgments
 
-- Special thanks to the open-source community for providing the tools and libraries used in this project.
-- Inspiration from modern IoT and smart farming solutions.
+Thanks to the open-source community and key technologies that made this possible:
 
----
-
-### **Contact**
-
-For questions, suggestions, or collaboration opportunities, feel free to reach out to me:
-
-- **Email:** [heck.sam@gmail.com](mailto\:heck.sam@gmail.com)
-- **LinkedIn:** [linkedin.com/in/samuelheck/](https://www.linkedin.com/in/samuelheck/)
-- **GitHub:** [github.com/Sam-Heck](https://github.com/Sam-Heck)
+-   [Mosquitto MQTT Broker](https://mosquitto.org/)
+-   [Prisma ORM](https://www.prisma.io/)
+-   [Next.js](https://nextjs.org/)
+-   [ESP32 Arduino Core](https://github.com/espressif/arduino-esp32)
 
 ---
 
-### **Why This Project?**
+## Contact
 
-I built IntelligentGreenhouse as a passion project to combine my love for technology and practical problem-solving. It demonstrates my ability to design and develop a system that bridges hardware and software to address real-world challenges.
+-   Email: [heck.sam@gmail.com](mailto:heck.sam@gmail.com)
+-   GitHub: [https://github.com/Sam-Heck](https://github.com/Sam-Heck)
+-   LinkedIn: [https://linkedin.com/in/samuelheck](https://linkedin.com/in/samuelheck)
 
+---
+
+## Why This Project?
+
+This project merges a practical real-world application—greenhouse management—with modern software and hardware. It demonstrates my ability to design and implement secure, extensible, full-stack systems that interact with real-time sensor networks.
