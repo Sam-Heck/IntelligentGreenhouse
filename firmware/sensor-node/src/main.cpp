@@ -26,7 +26,7 @@ const int CARD_HEIGHT = 90;
 const int CARD_MARGIN = 10;
 const int CARD_PADDING = 10;
 const int TEXT_INDENT = 20;
-
+const int STATUS_BAR_HEIGHT = 20;
 
 String topic;
 
@@ -97,6 +97,22 @@ void drawSensorCard(
     sprite.pushSprite(x, y);
 }
 
+void drawStatusBar(bool wifiConnected, bool mqttConnected) {
+    // Draw background bar
+    tft.fillRect(0, 0, tft.width(), STATUS_BAR_HEIGHT, TFT_BLACK);
+  
+    // Set status color
+    if (wifiConnected && mqttConnected) {
+      tft.setTextColor(TFT_GREEN, TFT_BLACK);
+      tft.setCursor(10, 4);
+      tft.print("Status: Connected");
+    } else {
+      tft.setTextColor(TFT_RED, TFT_BLACK);
+      tft.setCursor(10, 4);
+      tft.print("Status: Connecting...");
+    }
+  }
+  
 
 void setup() {
     Serial.begin(115200);
@@ -128,6 +144,10 @@ void setup() {
 }
 
 void loop() {
+    bool wifiOK = WiFi.status() == WL_CONNECTED;
+    bool mqttOK = client.connected();
+    drawStatusBar(wifiOK, mqttOK);    
+
     if (!client.connected()) {
         connectToMQTT();
     }
@@ -152,12 +172,12 @@ void loop() {
     
         drawSensorCard(
             card1, "Sensor 1", t1, h1,
-            CARD_MARGIN, CARD_MARGIN
+            CARD_MARGIN, STATUS_BAR_HEIGHT + CARD_MARGIN
         );
     
         drawSensorCard(
             card2, "Sensor 2", t2, h2,
-            CARD_MARGIN, CARD_MARGIN * 2 + CARD_HEIGHT
+            CARD_MARGIN, STATUS_BAR_HEIGHT + CARD_MARGIN * 2 + CARD_HEIGHT
         );
     }    
     
