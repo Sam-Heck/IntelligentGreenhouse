@@ -1,158 +1,99 @@
 # IntelligentGreenhouse
 
-## Overview
+An edge-native greenhouse monitoring and automation platform engineered for low power consumption, resilient local offline operation, and remote management.
 
-**IntelligentGreenhouse** is a full-stack, containerized greenhouse monitoring and control system built for remote access, automation, and extensibility. It features a real-time dashboard powered by MQTT-connected ESP32 devices, allowing users to view temperature and humidity data and, when authenticated, control relays and servos in the greenhouse environment.
-
-This is a personal passion project demonstrating skills in embedded systems, backend architecture, CI/CD, and modern web development.  
-**Live Demo (Coming Soon):** [https://intelligentgreenhouse.com](https://intelligentgreenhouse.com) (Read-only access)
+**Live Demo (Coming Soon):** [https://intelligentgreenhouse.com](https://intelligentgreenhouse.com) *(Read-only guest access)*  
+**Architecture Spec:** See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for full circuit schematics, protocol trade-offs, and control flow diagrams.
 
 ---
 
-## Features
+## Highlights
 
--   Real-time temperature and humidity monitoring
--   Device control (relay/servo) for authenticated users
--   Data persistence with MySQL
--   Public read-only dashboard access
--   Responsive Next.js frontend
--   Secure public access via Cloudflare Tunnel
--   Modular and extensible architecture
+- **Ultra-Low-Power Field Telemetry:** Peripheral ESP32 sensor nodes leverage connectionless **ESP-NOW** and deep sleep cycles to maximize battery life in damp soil beds.
+- **Offline-First Edge Gateway:** Raspberry Pi and a dedicated USB-connected ESP32 gateway handle local sensor ingestion, database persistence, and automation routines with zero dependence on external cloud connectivity.
+- **Bi-Directional State & Control:** Real-time push updates via WebSockets paired with an authenticated command-and-acknowledgment loop for actuators (relays/servos).
+- **Secure Remote Access:** Exposes an isolated, read-only guest dashboard over **Cloudflare Tunnel**, protecting physical controls behind session-based admin authentication without opening inbound router ports.
+
+---
+
+## System Architecture
+
+```text
+[ Battery Sensor Nodes ]  (ESP32 + Capacitive Soil Probes)
+           │
+           │  ESP-NOW (2.4 GHz packet, <150ms wake)
+           ▼
+[ Gateway Bridge Node ]   (ESP32 + BME280 Ambient Sensor)
+           │
+           │  Serial over USB (JSON framing)
+           ▼
+[ Raspberry Pi Edge Host ]
+   ├── Ingestion Service (Node.js + WebSockets)
+   ├── Local Database    (SQLite via Prisma ORM)
+   └── Web Dashboard     (Next.js + Tailwind CSS)
+           ▲
+           │  Cloudflare Tunnel (TLS)
+     [ Remote Web / Phone ]
+```
+
+*For complete message sequence diagrams and failure handling, review the [Actuator Control & State Acknowledgment Flow in docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#actuator-control--state-acknowledgment-flow).*
 
 ---
 
 ## Tech Stack
 
-| Layer           | Technology                             |
-| --------------- | -------------------------------------- |
-| Microcontroller | ESP32 with DHT22 sensors               |
-| Messaging       | MQTT (Mosquitto broker in Docker)      |
-| Backend         | Node.js data collector, Prisma ORM     |
-| Frontend        | Next.js web dashboard                  |
-| Database        | MySQL (Docker)                         |
-| CI/CD           | GitHub Actions with self-hosted runner |
-| Deployment      | Docker Compose on home server          |
-| Public Access   | Cloudflare Tunnel with custom domain   |
+| Domain | Technology |
+| :--- | :--- |
+| **Field Sensing** | ESP32-C3, Capacitive Soil Moisture, 18650 Li-ion |
+| **Wireless Protocol** | ESP-NOW (Node-to-Gateway peer-to-peer) |
+| **Edge Hardware** | Raspberry Pi 4/5 (4GB), Gateway ESP32, BME280 |
+| **Ingestion & Server** | Node.js, WebSockets (`ws`), Prisma ORM |
+| **Frontend** | Next.js (App Router), Tailwind CSS |
+| **Storage** | SQLite |
+| **Networking & Security** | Cloudflare Tunnel, RBAC (Public Guest vs. Admin) |
+| **Firmware Tooling** | PlatformIO |
 
 ---
 
 ## Project Structure
 
-    apps/
-      frontend/         → Next.js web dashboard
-      data-collector/   → Node.js backend storing MQTT data
-
-    firmware/
-      sensor-node/      → ESP32 sketch for sensor publishing
-      control-node/     → ESP32 sketch for control commands
-
-    docker/
-      docker-compose.yml → All containers (broker, db, frontend, backend)
-
-    .github/
-      workflows/        → CI/CD pipelines
-
----
-
-## Getting Started
-
-### Requirements
-
--   Docker and Docker Compose
--   ESP32 board (e.g., DevKit V1)
--   DHT22 sensor
--   PlatformIO
-
-### Quick Setup
-
-1. **Clone the repository:**
-
-    ```bash
-    git clone https://github.com/samheck/intelligent-greenhouse.git
-    cd intelligent-greenhouse
-    ```
-
-2. **Set up environment variables:**
-
-    Create a `.env` file in the root directory:
-
-    ```env
-    DATABASE_URL=mysql://user:password@mysql/intelligent_greenhouse
-    NODE_ENV=production
-    LANDING_PORT=3000
-    FRONTEND_PORT=3001
-    ```
-
-3. **Build and run containers:**
-
-    ```bash
-    docker-compose up --build
-    ```
-
-4. **Upload firmware to ESP32:**
-
-    - Update Wi-Fi and MQTT broker credentials in PlatformIO project folder env file (manually create)
-    - Upload to the ESP32 board with PlatformIO
-    - Must open the project in VS Code with PlatformIO project folder as the root for proper board recognition by PlatformIO.
+```text
+├── apps/
+│   ├── frontend/        # Next.js real-time web dashboard
+│   └── server/          # Node.js serial ingestion, WebSocket emitter, & Prisma models
+├── firmware/
+│   ├── gateway/         # ESP-NOW receiver & USB serial bridge sketch
+│   └── sensor-node/     # Deep-sleep battery sensor sketch
+├── docs/
+│   ├── ARCHITECTURE.md  # Deep dive into hardware, state flow, and power budget
+│   ├── ROADMAP.md       # Phased engineering milestones
+│   └── devlog/          # Debugging notes and hardware bench tests
+└── docker/
+    └── docker-compose.yml
+```
 
 ---
 
-## Usage
+## Hardware Requirements (Bench Prototype)
 
--   Open the browser and visit: [https://intelligentgreenhouse.com](https://intelligentgreenhouse.com)
--   Public users can view live sensor data
--   Authenticated users can send control commands to connected devices
-
----
-
-## Security and Access
-
-### Public Users
-
--   Can view live data on the dashboard
--   Cannot interact with control components
-
-### Authenticated Users
-
--   Can toggle relays or adjust servos via MQTT
--   May have the ability to register their own hardware in future updates
+- **1x Raspberry Pi 4 or 5 (4GB)** running Raspberry Pi OS.
+- **1x ESP32 Dev Board** (Gateway node, plugged via USB into the Pi).
+- **1x or more ESP32-C3 / DevKit boards** (Battery field sensor nodes).
+- **Sensors:** BME280 (I2C ambient temp/humidity) and analog capacitive soil moisture probes.
+- **Power:** 18650 lithium cells (or 3x AA battery packs) with high-value resistor dividers (e.g., 2x 100kΩ) for ADC battery monitoring.
 
 ---
 
-## Roadmap
+## Security & Access Model
 
--   Add historical data graphing (charts)
--   Add threshold-based alerting via (email, SMS)
--   Add basic automation from thresholds adjustable via client(e.g., close vents if temp > X)
--   Support multiple user accounts and device registration
-
----
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
----
-
-## Acknowledgments
-
-Thanks to the open-source community and key technologies that made this possible:
-
--   [Mosquitto MQTT Broker](https://mosquitto.org/)
--   [Prisma ORM](https://www.prisma.io/)
--   [Next.js](https://nextjs.org/)
--   [ESP32 Arduino Core](https://github.com/espressif/arduino-esp32)
+- **Public / Guest:** Default unauthenticated state. Visitors can inspect live sensor telemetry, ambient metrics, and historical graphs in real time. Actuators and calibration inputs are disabled.
+- **Admin:** Authenticated via secure session cookie. Unlocks physical control triggers (relays, exhaust fans, servos) and threshold overrides.
 
 ---
 
 ## Contact
 
--   Email: [heck.sam@gmail.com](mailto:heck.sam@gmail.com)
--   GitHub: [https://github.com/Sam-Heck](https://github.com/Sam-Heck)
--   LinkedIn: [https://linkedin.com/in/samuelheck](https://linkedin.com/in/samuelheck)
-
----
-
-## Why This Project?
-
-This project merges a practical real-world application—greenhouse management—with modern software and hardware. It demonstrates my ability to design and implement secure, extensible, full-stack systems that interact with real-time sensor networks.
+- **Author:** Samuel Heck
+- **Email:** [heck.sam@gmail.com](mailto:heck.sam@gmail.com)
+- **GitHub:** [@Sam-Heck](https://github.com/Sam-Heck)
+- **LinkedIn:** [linkedin.com/in/samuelheck](https://linkedin.com/in/samuelheck)
