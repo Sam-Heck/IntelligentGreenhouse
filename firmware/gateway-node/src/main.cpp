@@ -80,7 +80,7 @@ void loop() {
             StaticJsonDocument<256> doc;
             doc["messageType"] = "telemetry";
             doc["nodeId"] = gatewayMacStr;
-            doc["device"] = "gateway-dht22-sensors";
+            doc["device"] = "gateway-node";
             doc["batteryMv"] = 0; // Node interprets this as AC-powered.
             doc["seq"] = localSeq++;
 
