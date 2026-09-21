@@ -62,11 +62,12 @@ export interface TelemetryPacket {
 
 ```prisma
 model Device {
-    id          String          @id
-    name        String
-    devicetype  String
-    lastSeen    DateTime        @default(now())
-    readings    Telemetry[]
+    id              String          @id
+    name            String
+    devicetype      String
+    isActuator      Boolean         @default(false)
+    lastSeen        DateTime        @default(now())
+    readings        Telemetry[]
 }
 
 model Telemetry {
@@ -80,5 +81,14 @@ model Telemetry {
 
     @@index([nodeId, timestamp])
     @@index([metric, timestamp])
+}
+
+model ActuatorState {
+    deviceId        String      @id
+    device          Device      @relation(fields: [deviceId], references: [id])
+    targetState     Float       // ie: 1.0 (ON) or 90.0 (degrees open)
+    actualState     Float       // last confirmed position/state reported by hardware
+    isPending       Boolean     @default(false) // true if command sent but not yet confirmed
+    updatedAt       DateTime    @updatedAt
 }
 ```
