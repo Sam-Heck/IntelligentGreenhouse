@@ -17,7 +17,6 @@ enum MessageType : uint8_t {
 struct __attribute__((packed)) EspNowPayload {
     uint8_t version;        // Protocol version check
     uint8_t msgType;        // MessageType enum
-    char nodeId[16];        // unique string id (ie: "soil-bed-01")
     char deviceType[16];    // identifier for parser routing (ie: "soil_probe")
     uint16_t batteryMv;     // battery millivolts
     uint32_t sequenceId;    // detect dropped packets
@@ -62,7 +61,8 @@ export interface TelemetryPacket {
 
 ```prisma
 model Device {
-    id              String          @id
+    id              String          @id // Hardware MAC address
+    name            String?
     name            String
     devicetype      String
     isActuator      Boolean         @default(false)

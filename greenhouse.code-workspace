@@ -1,0 +1,21 @@
+{
+    "folders": [
+        {
+            "name": "Root",
+            "path": "."
+        },
+        {
+            "name": "Firmware - Gateway",
+            "path": "firmware/gateway-node"
+        },
+        {
+            "name": "Host - Serial Ingestion",
+            "path": "server"
+        },
+        {
+            "name": "UI - Kiosk Dashboard",
+            "path": "frontend"
+        }
+    ],
+    "settings": {}
+}
