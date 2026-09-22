@@ -63,7 +63,6 @@ export interface TelemetryPacket {
 model Device {
     id              String          @id // Hardware MAC address
     name            String?
-    name            String
     devicetype      String
     isActuator      Boolean         @default(false)
     lastSeen        DateTime        @default(now())
@@ -72,8 +71,7 @@ model Device {
 
 model Telemetry {
     id          Int             @id @default(autoincrement())
-    nodeId      String
-    device      Device          @relation(fields: [nodeId], references: [id])
+    nodeId      String          @relation(fields: [nodeId], references: [id]) 
     timestamp   DateTime        @default(now())
     batteryMv   Int?
     metric      String          // ie: "moisture", "temperature"
