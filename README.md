@@ -5,7 +5,11 @@ An edge-native greenhouse monitoring and automation platform engineered for low 
 **Live Demo (Coming Soon):** [https://intelligentgreenhouse.com](https://intelligentgreenhouse.com) *(Read-only guest access)*  
 **Architecture Spec:** See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for full circuit schematics, protocol trade-offs, and control flow diagrams.
 
----
+
+## Setup
+
+- Create .env file in project root and add the following variables:
+    - `SERIAL_BAUD_RATE` - set to your board's baud rate (defaults to 115200)
 
 ## Highlights
 
@@ -14,7 +18,6 @@ An edge-native greenhouse monitoring and automation platform engineered for low 
 - **Bi-Directional State & Control:** Real-time push updates via WebSockets paired with an authenticated command-and-acknowledgment loop for actuators (relays/servos).
 - **Secure Remote Access:** Exposes an isolated, read-only guest dashboard over **Cloudflare Tunnel**, protecting physical controls behind session-based admin authentication without opening inbound router ports.
 
----
 
 ## System Architecture
 
@@ -38,7 +41,6 @@ An edge-native greenhouse monitoring and automation platform engineered for low 
 
 *For complete message sequence diagrams and failure handling, review the [Actuator Control & State Acknowledgment Flow in docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#actuator-control--state-acknowledgment-flow).*
 
----
 
 ## Tech Stack
 
@@ -53,26 +55,6 @@ An edge-native greenhouse monitoring and automation platform engineered for low 
 | **Networking & Security** | Cloudflare Tunnel, RBAC (Public Guest vs. Admin) |
 | **Firmware Tooling** | PlatformIO |
 
----
-
-## Project Structure
-
-```text
-├── apps/
-│   ├── frontend/        # Next.js real-time web dashboard
-│   └── server/          # Node.js serial ingestion, WebSocket emitter, & Prisma models
-├── firmware/
-│   ├── gateway/         # ESP-NOW receiver & USB serial bridge sketch
-│   └── sensor-node/     # Deep-sleep battery sensor sketch
-├── docs/
-│   ├── ARCHITECTURE.md  # Deep dive into hardware, state flow, and power budget
-│   ├── ROADMAP.md       # Phased engineering milestones
-│   └── devlog/          # Debugging notes and hardware bench tests
-└── docker/
-    └── docker-compose.yml
-```
-
----
 
 ## Hardware Requirements (Bench Prototype)
 
@@ -82,14 +64,12 @@ An edge-native greenhouse monitoring and automation platform engineered for low 
 - **Sensors:** BME280 (I2C ambient temp/humidity) and analog capacitive soil moisture probes.
 - **Power:** 18650 lithium cells (or 3x AA battery packs) with high-value resistor dividers (e.g., 2x 100kΩ) for ADC battery monitoring.
 
----
 
 ## Security & Access Model
 
 - **Public / Guest:** Default unauthenticated state. Visitors can inspect live sensor telemetry, ambient metrics, and historical graphs in real time. Actuators and calibration inputs are disabled.
 - **Admin:** Authenticated via secure session cookie. Unlocks physical control triggers (relays, exhaust fans, servos) and threshold overrides.
 
----
 
 ## Contact
 

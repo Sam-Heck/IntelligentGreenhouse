@@ -17,3 +17,6 @@
 - **Connection:** Micro-USB / USB-C to Raspberry Pi host
 - **Baud Rate:** `115200`
 - **Output:** Single-line newline-delimited JSON (`\n`)
+
+# Setup
+- Define `SERIAL_BAUD_RATE` in the root .env file to match your board (defaults to 115200).

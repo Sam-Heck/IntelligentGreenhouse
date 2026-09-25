@@ -45,7 +45,7 @@ void onDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len) {
 }
 
 void setup() {
-    Serial.begin(115200);
+    Serial.begin(SERIAL_BAUD_RATE);
 
     dhtInternal.begin();
     dhtExternal.begin();
