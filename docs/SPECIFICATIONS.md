@@ -14,14 +14,28 @@ enum MessageType : uint8_t {
     MSG_ACK = 4
 };
 
+enum SensorType : uint8_t {
+    TEMP_C = 1,
+    HUMIDITY = 2,
+    PRESSURE_PA = 3,
+    SOIL_MOIST = 4,
+    LIGHT_LUX = 5,
+    RELAY_STATE = 6,
+    SERVO_STATE = 7
+}
+
+struct __attribute__((packed)) Reading {
+    uint8_t type;
+    float value;
+}
+
 struct __attribute__((packed)) EspNowPayload {
     uint8_t version;        // Protocol version check
-    uint8_t msgType;        // MessageType enum
-    char deviceType[16];    // identifier for parser routing (ie: "soil_probe")
-    uint16_t batteryMv;     // battery millivolts
+    uint8_t msgType;    
+    uint16_t batteryMv;   
     uint32_t sequenceId;    // detect dropped packets
-    uint8_t valueCount;     // elements populated in values[]
-    float values[6];        // positional floats mapped by deviceType
+    uint8_t readingCount;     // elements populated in readings[]
+    Reading readings[6];  
 }
 ```
 
@@ -31,8 +45,7 @@ struct __attribute__((packed)) EspNowPayload {
 ```json
 {
     "messageType": "telemetry",
-    "nodeId": "soil-bed-01",
-    "device": "soil-probe",
+    "deviceId": "mac-address-here",
     "batteryMv": 3820,
     "seq": 104,
     "data": {
@@ -49,8 +62,7 @@ export type MessageType = 'telemetry' | 'heartbeat' | 'command' | 'ack';
 
 export interface TelemetryPacket {
     messageType: MessageType;
-    nodeId: string;
-    device: string;
+    deviceId: string;
     batteryMv?: number;
     seq: number;
     data: Record<string, number | boolean>;
@@ -63,7 +75,6 @@ export interface TelemetryPacket {
 model Device {
     id              String          @id // Hardware MAC address
     name            String?
-    devicetype      String
     isActuator      Boolean         @default(false)
     lastSeen        DateTime        @default(now())
     readings        Telemetry[]
@@ -71,7 +82,7 @@ model Device {
 
 model Telemetry {
     id          Int             @id @default(autoincrement())
-    nodeId      String          @relation(fields: [nodeId], references: [id]) 
+    deviceId      String          @relation(fields: [nodeId], references: [id]) 
     timestamp   DateTime        @default(now())
     batteryMv   Int?
     metric      String          // ie: "moisture", "temperature"
