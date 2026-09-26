@@ -6,3 +6,7 @@
 - Actuator sensors will store their current and targeted state a seperate table that has 1 record per device to keep hardware boundaries clean
 - Write firmware for gateway node with a non blocking loop reading local DHT sensors and an ESP-NOW radio message listener that interrupts and runs callback to format and send recieved data to Node.js ingestion service. 
 - Remove code for old architecure and organize repo as a multi-project workspace to improve dev experience.
+
+### 9/25/2026:
+- Updated telemetry data to be self-describing so remote nodes don't have to provide a deviceType field in the ESPNOW payload. This allows nodes to be more flexible by having multiple sensors. Updated DTO shapes between layers to match. 
+- Added a sensorChannel table to schema to allow users to dynamically name sensors channels in their UI.
